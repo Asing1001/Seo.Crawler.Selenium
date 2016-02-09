@@ -5,6 +5,7 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using OpenQA.Selenium.Chrome;
 
 namespace Seo.Crawler.Selenium
@@ -27,6 +28,8 @@ namespace Seo.Crawler.Selenium
             ChromeOptions chromeOptions = new ChromeOptions();
             chromeOptions.AddArgument(_options.UserAgent);
             _driver = new ChromeDriver(chromeOptions);
+            //To init screenshot
+            _driver.GetScreenshot();
         }
 
 
@@ -38,12 +41,10 @@ namespace Seo.Crawler.Selenium
 
         private void Crawl(Uri uri)
         {
+            pagesVisited.Add(uri);
             Console.WriteLine("[{0}] Open page :{1}", pagesVisited.Count, uri);
             _driver.Navigate().GoToUrl(uri);
-            pagesVisited.Add(uri);
-
             SaveHtmlAndScreenShot(uri);
-
             pagesToVisit.AddRange(GetUnvisitedLinks());
             _nextUri = RemoveAndGetUrlFromPagesToVisit();
             if (_nextUri != null && pagesVisited.Count < _options.MaxPageToVisit)
