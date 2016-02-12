@@ -5,7 +5,6 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading;
 using OpenQA.Selenium.Chrome;
 
 namespace Seo.Crawler.Selenium
@@ -16,15 +15,15 @@ namespace Seo.Crawler.Selenium
         private CrawlerOptions _options;
         private HashSet<Uri> pagesVisited;
         private List<Uri> pagesToVisit;
-        private Uri _nextUri;
         private Stopwatch _watch;
 
 
         public Crawler(CrawlerOptions options)
         {
-            this._options = options;
+            _options = options;
             pagesVisited = new HashSet<Uri>();
             pagesToVisit = new List<Uri>();
+            _watch = new Stopwatch();
             ChromeOptions chromeOptions = new ChromeOptions();
             chromeOptions.AddArgument(_options.UserAgent);
             _driver = new ChromeDriver(chromeOptions);
@@ -35,7 +34,7 @@ namespace Seo.Crawler.Selenium
 
         public void Start()
         {
-            _watch = new Stopwatch();
+            _watch.Start();
             Crawl(_options.StartUrl);
         }
 
@@ -46,10 +45,9 @@ namespace Seo.Crawler.Selenium
             _driver.Navigate().GoToUrl(uri);
             SaveHtmlAndScreenShot(uri);
             pagesToVisit.AddRange(GetUnvisitedLinks());
-            _nextUri = RemoveAndGetUrlFromPagesToVisit();
-            if (_nextUri != null && pagesVisited.Count < _options.MaxPageToVisit)
+            if (pagesToVisit.Count>=1 && pagesVisited.Count < _options.MaxPageToVisit)
             {
-                Crawl(_nextUri);
+                Crawl(PopUrlFromPagesToVisit());
             }
             else
             {
@@ -66,7 +64,7 @@ namespace Seo.Crawler.Selenium
             Console.WriteLine("Finish all task in {0} ms", _watch.ElapsedMilliseconds);
         }
 
-        private Uri RemoveAndGetUrlFromPagesToVisit()
+        private Uri PopUrlFromPagesToVisit()
         {
             var result = pagesToVisit.FirstOrDefault();
             pagesToVisit.RemoveAt(0);
@@ -89,7 +87,8 @@ namespace Seo.Crawler.Selenium
                     }
                 }
                 );
-            var sameDomainUnvisitedLinks = links.Where(link => link != null && link.Host.Contains(originHost) && !pagesVisited.Contains(link));
+            var sameDomainUnvisitedLinks = links.Where(link => link != null && link.Host.Contains(originHost) && !pagesVisited.Contains(link) 
+                && !pagesToVisit.Contains(link));
             return sameDomainUnvisitedLinks;
         }
 
@@ -113,7 +112,7 @@ namespace Seo.Crawler.Selenium
 
         private string MakeValidFileName(string name)
         {
-            string invalidChars = System.Text.RegularExpressions.Regex.Escape(new string(System.IO.Path.GetInvalidFileNameChars()));
+            string invalidChars = System.Text.RegularExpressions.Regex.Escape(new string(Path.GetInvalidFileNameChars()));
             string invalidRegStr = string.Format(@"([{0}]*\.+$)|([{0}]+)", invalidChars);
 
             return System.Text.RegularExpressions.Regex.Replace(name, invalidRegStr, "_");
@@ -123,7 +122,7 @@ namespace Seo.Crawler.Selenium
         {
             try
             {
-                string sitemapPath = string.Format("{0}/{1}sitemap.xml", _options.FolderPath, DateTime.Now.ToString("DD-MM-YYYY"));
+                string sitemapPath = string.Format("{0}/{1}sitemap.xml", _options.FolderPath, DateTime.Now.ToString("dd-MM-yyyy"));
                 using (var fileStream = new FileStream(sitemapPath, FileMode.Create))
                 {
                     var siteMapGenerator = new SiteMapGenerator(fileStream, Encoding.UTF8);

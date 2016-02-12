@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Text;
 using System.Xml;
 
 namespace Seo.Crawler.Selenium
@@ -8,13 +10,13 @@ namespace Seo.Crawler.Selenium
     {
         XmlTextWriter writer;
 
-        public SiteMapGenerator(System.IO.Stream stream, System.Text.Encoding encoding)
+        public SiteMapGenerator(Stream stream, Encoding encoding)
         {
             writer = new XmlTextWriter(stream, encoding);
             writer.Formatting = Formatting.Indented;
         }
 
-        public SiteMapGenerator(System.IO.TextWriter w)
+        public SiteMapGenerator(TextWriter w)
         {
             writer = new XmlTextWriter(w);
             writer.Formatting = Formatting.Indented;
@@ -31,9 +33,6 @@ namespace Seo.Crawler.Selenium
             Close();
         }
 
-        /// <summary>
-        /// Writes the beginning of the SiteMap document
-        /// </summary>
         private void WriteStartDocument()
         {
             writer.WriteStartDocument();
@@ -42,18 +41,12 @@ namespace Seo.Crawler.Selenium
             writer.WriteAttributeString("xmlns", "http://www.google.com/schemas/sitemap/0.84");
         }
 
-        /// <summary>
-        /// Writes the end of the SiteMap document
-        /// </summary>
         private void WriteEndDocument()
         {
             writer.WriteEndElement();
             writer.WriteEndDocument();
         }
 
-        /// <summary>
-        /// Closes this stream and the underlying stream
-        /// </summary>
         private void Close()
         {
             writer.Flush();
