@@ -5,6 +5,7 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Text;
+using NLog;
 using OpenQA.Selenium.Chrome;
 
 namespace Seo.Crawler.Selenium
@@ -16,7 +17,7 @@ namespace Seo.Crawler.Selenium
         private HashSet<Uri> pagesVisited;
         private List<Uri> pagesToVisit;
         private Stopwatch _watch;
-
+        private Logger logger;
 
         public Crawler(CrawlerOptions options)
         {
@@ -24,7 +25,8 @@ namespace Seo.Crawler.Selenium
             pagesVisited = new HashSet<Uri>();
             pagesToVisit = new List<Uri>();
             _watch = new Stopwatch();
-            ChromeOptions chromeOptions = new ChromeOptions();
+            logger = LogManager.GetCurrentClassLogger();
+            var chromeOptions = new ChromeOptions();
             chromeOptions.AddArgument(_options.UserAgent);
             _driver = new ChromeDriver(chromeOptions);
             //To init screenshot
@@ -41,7 +43,7 @@ namespace Seo.Crawler.Selenium
         private void Crawl(Uri uri)
         {
             pagesVisited.Add(uri);
-            Console.WriteLine("[{0}] Open page :{1}", pagesVisited.Count, uri);
+            logger.Info("[{0}] Open page :{1}", pagesVisited.Count, uri);
             _driver.Navigate().GoToUrl(uri);
             SaveHtmlAndScreenShot(uri);
             pagesToVisit.AddRange(GetUnvisitedLinks());
@@ -61,7 +63,7 @@ namespace Seo.Crawler.Selenium
             _driver.Dispose();
             SaveSitemap();
             _watch.Stop();
-            Console.WriteLine("Finish all task in {0} ms", _watch.ElapsedMilliseconds);
+            logger.Info("Finish all task in {0}", _watch.Elapsed);
         }
 
         private Uri PopUrlFromPagesToVisit()
@@ -101,12 +103,12 @@ namespace Seo.Crawler.Selenium
                 string filenameWithPath = _options.FolderPath + uri.AbsolutePath + MakeValidFileName(uri.Query);
                 Directory.CreateDirectory(Path.GetDirectoryName(filenameWithPath));
                 File.WriteAllText(filenameWithPath + ".html", result);
-                Console.WriteLine("SaveHtmlAndScreenShot to {0}", filenameWithPath);
+                logger.Info("SaveHtmlAndScreenShot to {0}", filenameWithPath);
                 _driver.GetScreenshot().SaveAsFile(filenameWithPath + ".jpg", ImageFormat.Jpeg);
             }
             catch (Exception ex)
             {
-                Console.WriteLine("SaveHtmlAndScreenShot throw exception {0}", ex);
+                logger.Error(ex);
             }
         }
 
@@ -131,7 +133,7 @@ namespace Seo.Crawler.Selenium
             }
             catch (Exception ex)
             {
-                Console.WriteLine("SaveSitemap throw error {0}", ex);
+                logger.Error(ex);
             }
         }
     }

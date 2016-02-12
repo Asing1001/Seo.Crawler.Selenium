@@ -1,23 +1,26 @@
 ﻿using System;
 using System.Configuration;
+using NLog;
 
 namespace Seo.Crawler.Selenium
 {
     class Program
     {
+        private static Logger logger = LogManager.GetCurrentClassLogger();
         static void Main(string[] args)
         {
             try
             {
+                
                 var options = ConfigurationManager.GetSection("CrawlerOptions") as CrawlerOptions;
-                Console.WriteLine("Config is {0}", options);
+                logger.Info("Config is {0}", options);
                 var crawler = new Crawler(options);
                 crawler.Start();
                 Console.ReadLine();
             }
             catch(Exception ex)
             {
-                Console.WriteLine("Unexpected error occur:{0}",ex);
+                logger.Fatal(ex);
                 Console.ReadLine();
             }
         }
