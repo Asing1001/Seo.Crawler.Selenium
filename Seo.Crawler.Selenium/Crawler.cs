@@ -7,12 +7,13 @@ using System.Linq;
 using System.Text;
 using NLog;
 using OpenQA.Selenium.Chrome;
+using OpenQA.Selenium.Remote;
 
 namespace Seo.Crawler.Selenium
 {
     public class Crawler
     {
-        private ChromeDriver _driver;
+        private RemoteWebDriver _driver;
         private CrawlerOptions _options;
         private HashSet<Uri> pagesVisited;
         private List<Uri> pagesToVisit;
@@ -45,7 +46,7 @@ namespace Seo.Crawler.Selenium
             _driver.Navigate().GoToUrl(uri);
             SaveHtmlAndScreenShot(uri);
             pagesToVisit.AddRange(GetUnvisitedLinks());
-            if (pagesToVisit.Count>=1 && pagesVisited.Count < _options.MaxPageToVisit)
+            if (pagesToVisit.Count >= 1 && pagesVisited.Count < _options.MaxPageToVisit)
             {
                 Crawl(PopUrlFromPagesToVisit());
             }
@@ -87,7 +88,7 @@ namespace Seo.Crawler.Selenium
                     }
                 }
                 );
-            var sameDomainUnvisitedLinks = links.Where(link => link != null && link.Host.Contains(originHost) && !pagesVisited.Contains(link) 
+            var sameDomainUnvisitedLinks = links.Where(link => link != null && link.Host.Contains(originHost) && !pagesVisited.Contains(link)
                 && !pagesToVisit.Contains(link));
             return sameDomainUnvisitedLinks;
         }
@@ -127,7 +128,9 @@ namespace Seo.Crawler.Selenium
                 {
                     var siteMapGenerator = new SiteMapGenerator(fileStream, Encoding.UTF8);
                     siteMapGenerator.Generate(pagesVisited);
+                    siteMapGenerator.Close();
                 }
+                logger.Info("SiteMap save to {0}", sitemapPath);
             }
             catch (Exception ex)
             {

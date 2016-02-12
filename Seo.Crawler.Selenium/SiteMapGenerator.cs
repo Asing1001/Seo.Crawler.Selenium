@@ -30,7 +30,6 @@ namespace Seo.Crawler.Selenium
                 WriteItem(link.OriginalString, DateTime.Now, "1.0");
             }
             WriteEndDocument();
-            Close();
         }
 
         private void WriteStartDocument()
@@ -47,7 +46,7 @@ namespace Seo.Crawler.Selenium
             writer.WriteEndDocument();
         }
 
-        private void Close()
+        public void Close()
         {
             writer.Flush();
             writer.Close();
