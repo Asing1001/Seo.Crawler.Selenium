@@ -11,7 +11,6 @@ namespace Seo.Crawler.Selenium
         {
             try
             {
-                
                 var options = ConfigurationManager.GetSection("CrawlerOptions") as CrawlerOptions;
                 logger.Info("Config is {0}", options);
                 var crawler = new Crawler(options);

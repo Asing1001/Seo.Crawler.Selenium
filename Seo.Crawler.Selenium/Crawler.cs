@@ -27,10 +27,8 @@ namespace Seo.Crawler.Selenium
             _watch = new Stopwatch();
             logger = LogManager.GetCurrentClassLogger();
             var chromeOptions = new ChromeOptions();
-            chromeOptions.AddArgument(_options.UserAgent);
+            chromeOptions.AddArgument("--user-agent=" + _options.UserAgent);
             _driver = new ChromeDriver(chromeOptions);
-            //To init screenshot
-            _driver.GetScreenshot();
         }
 
 
@@ -103,7 +101,7 @@ namespace Seo.Crawler.Selenium
                 string filenameWithPath = _options.FolderPath + uri.AbsolutePath + MakeValidFileName(uri.Query);
                 Directory.CreateDirectory(Path.GetDirectoryName(filenameWithPath));
                 File.WriteAllText(filenameWithPath + ".html", result);
-                logger.Info("SaveHtmlAndScreenShot to {0}", filenameWithPath);
+                logger.Info("SaveHtmlAndScreenShot to {0}.html", filenameWithPath);
                 _driver.GetScreenshot().SaveAsFile(filenameWithPath + ".jpg", ImageFormat.Jpeg);
             }
             catch (Exception ex)

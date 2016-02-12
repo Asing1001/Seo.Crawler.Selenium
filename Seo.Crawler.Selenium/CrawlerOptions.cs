@@ -11,11 +11,7 @@ namespace Seo.Crawler.Selenium
         {
             get { return (string)this["FolderPath"]; }
         }
-        [ConfigurationProperty("WaitMilliSeconds")]
-        public int WaitMilliSeconds
-        {
-            get { return (int)this["WaitMilliSeconds"]; }
-        }
+       
         [ConfigurationProperty("UserAgent")]
         public string UserAgent
         {
@@ -37,8 +33,8 @@ namespace Seo.Crawler.Selenium
         public override string ToString()
         {
             return string.Format(
-                "FolderPath:{0}, WaitMilliSeconds:{1}, UserAgent:{2}, MaxPageToVisit:{3}, StartUrl:{4}",
-                FolderPath, WaitMilliSeconds, UserAgent, MaxPageToVisit, StartUrl);
+                "FolderPath:{0}, UserAgent:{1}, MaxPageToVisit:{2}, StartUrl:{3}",
+                FolderPath, UserAgent, MaxPageToVisit, StartUrl);
         }
     }
 }
