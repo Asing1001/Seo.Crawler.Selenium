@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+  <metadata>
+    <id>NLog.Config</id>
+    <version>4.2.3</version>
+    <title>NLog Configuration</title>
+    <authors>Kim Christensen,  Julian Verdurmen</authors>
+    <owners>Kim Christensen,  Julian Verdurmen</owners>
+    <licenseUrl>http://raw.github.com/NLog/NLog/master/LICENSE.txt</licenseUrl>
+    <projectUrl>http://nlog-project.org/</projectUrl>
+    <iconUrl>http://nlog-project.org/NConfig.png</iconUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Empty NLog.config file.</description>
+    <summary>Empty NLog.config file for use with NLog.</summary>
+    <releaseNotes>NLog 4.2.3</releaseNotes>
+    <language>en-US</language>
+    <tags>nlog xml config</tags>
+    <dependencies>
+      <dependency id="NLog" version="4.2.3" />
+      <dependency id="NLog.Schema" version="4.0" />
+    </dependencies>
+  </metadata>
+</package>
