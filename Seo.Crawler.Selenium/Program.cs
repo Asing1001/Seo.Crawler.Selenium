@@ -15,12 +15,10 @@ namespace Seo.Crawler.Selenium
                 logger.Info("Config is {0}", options);
                 var crawler = new Crawler(options);
                 crawler.Start();
-                Console.ReadLine();
             }
             catch(Exception ex)
             {
                 logger.Fatal(ex);
-                Console.ReadLine();
             }
         }
     }
