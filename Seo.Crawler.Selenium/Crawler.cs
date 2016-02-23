@@ -5,6 +5,7 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Newtonsoft.Json;
 using NLog;
 using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Remote;
@@ -19,11 +20,13 @@ namespace Seo.Crawler.Selenium
         private List<Uri> pagesToVisit;
         private Stopwatch _watch;
         private Logger logger;
+        private HashSet<Uri> pagesNotFound;
 
         public Crawler(CrawlerOptions options)
         {
             _options = options;
             pagesVisited = new HashSet<Uri>();
+            pagesNotFound = new HashSet<Uri>();
             pagesToVisit = new List<Uri>();
             _watch = new Stopwatch();
             logger = LogManager.GetCurrentClassLogger();
@@ -45,6 +48,7 @@ namespace Seo.Crawler.Selenium
             logger.Info("[{0}] Open page :{1}", pagesVisited.Count, uri);
             _driver.Navigate().GoToUrl(uri);
             SaveHtmlAndScreenShot(uri);
+            Record404Pages(uri);
             pagesToVisit.AddRange(GetUnvisitedLinks());
             if (pagesToVisit.Count >= 1 && pagesVisited.Count < _options.MaxPageToVisit)
             {
@@ -54,15 +58,43 @@ namespace Seo.Crawler.Selenium
             {
                 Finish();
             }
+        }
 
+        private void Record404Pages(Uri currentUri)
+        {
+            if (_driver.PageSource.Contains("Error 404"))
+            {
+                pagesNotFound.Add(currentUri);
+            }
         }
 
         private void Finish()
         {
             _driver.Dispose();
+            _driver.Close();
             SaveSitemap();
+            Save404Pages();
             _watch.Stop();
             logger.Info("Finish all task in {0}", _watch.Elapsed);
+        }
+
+        private void Save404Pages()
+        {
+            try
+            {
+                string pagesNotFoundPath = string.Format("{0}/{1}pagesNotFound.xml", _options.FolderPath, DateTime.Now.ToString("dd-MM-yyyy"));
+                using (var fileStream = new FileStream(pagesNotFoundPath, FileMode.Create))
+                {
+                    var siteMapGenerator = new SiteMapGenerator(fileStream, Encoding.UTF8);
+                    siteMapGenerator.Generate(pagesNotFound);
+                    siteMapGenerator.Close();
+                }
+                logger.Info("SiteMap save to {0}", pagesNotFoundPath);
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex);
+            }
         }
 
         private Uri PopUrlFromPagesToVisit()
@@ -89,7 +121,9 @@ namespace Seo.Crawler.Selenium
                 }
                 );
             var sameDomainUnvisitedLinks = links.Where(link => link != null && link.Host.Contains(originHost) && !pagesVisited.Contains(link)
-                && !pagesToVisit.Contains(link));
+                && !pagesToVisit.Contains(link)).ToList();
+            logger.Info("Get {0} sameDomainUnvisitedLinks, list as below :{1}", sameDomainUnvisitedLinks.Count,
+                JsonConvert.SerializeObject(sameDomainUnvisitedLinks.Select(uri => uri.AbsolutePath)));
             return sameDomainUnvisitedLinks;
         }
 
@@ -97,8 +131,13 @@ namespace Seo.Crawler.Selenium
         {
             try
             {
+                var removeScriptTag =
+                    "Array.prototype.slice.call(document.getElementsByTagName('script')).forEach(function(item) { item.parentNode.removeChild(item);});";
+                var addClassToBody = "document.getElementsByTagName('body')[0].className += ' seoPrerender';";
+                _driver.ExecuteScript(removeScriptTag+addClassToBody);
                 //uri.AbsolutePath is relative url
                 var result = _driver.PageSource;
+
                 string filenameWithPath = _options.FolderPath + uri.AbsolutePath + MakeValidFileName(uri.Query);
                 Directory.CreateDirectory(Path.GetDirectoryName(filenameWithPath));
                 File.WriteAllText(filenameWithPath + ".html", result);
