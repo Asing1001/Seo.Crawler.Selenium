@@ -19,7 +19,7 @@ namespace Seo.Crawler.Selenium
             }
             catch(Exception ex)
             {
-                crawler.Finish();
+
                 logger.Fatal(ex);
             }
         }

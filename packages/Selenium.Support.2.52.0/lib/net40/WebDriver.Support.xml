@@ -2160,6 +2160,9 @@
             <summary>
             Deselect the option by the text displayed.
             </summary>
+            <exception cref="T:System.InvalidOperationException">Thrown when attempting to deselect option from a SELECT
+            that does not support multiple selections.</exception>
+            <exception cref="T:OpenQA.Selenium.NoSuchElementException">Thrown when no element exists with the specified test attribute.</exception>
             <param name="text">The text of the option to be deselected.</param>
             <remarks>When given "Bar" this method would deselect an option like:
             <para>
@@ -2171,6 +2174,9 @@
             <summary>
             Deselect the option having value matching the specified text.
             </summary>
+            <exception cref="T:System.InvalidOperationException">Thrown when attempting to deselect option from a SELECT
+            that does not support multiple selections.</exception>
+            <exception cref="T:OpenQA.Selenium.NoSuchElementException">Thrown when no element exists with the specified value attribute.</exception>
             <param name="value">The value of the option to deselect.</param>
             <remarks>When given "foo" this method will deselect an option like:
             <para>
@@ -2182,6 +2188,9 @@
             <summary>
             Deselect the option by the index, as determined by the "index" attribute of the element.
             </summary>
+            <exception cref="T:System.InvalidOperationException">Thrown when attempting to deselect option from a SELECT
+            that does not support multiple selections.</exception>
+            <exception cref="T:OpenQA.Selenium.NoSuchElementException">Thrown when no element exists with the specified index attribute.</exception>
             <param name="index">The value of the index attribute of the option to deselect.</param>
         </member>
         <member name="P:OpenQA.Selenium.Support.UI.SelectElement.WrappedElement">

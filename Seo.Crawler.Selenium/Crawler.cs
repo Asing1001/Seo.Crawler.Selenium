@@ -9,7 +9,9 @@ using Newtonsoft.Json;
 using NLog;
 using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Remote;
-
+using System.Data;
+using LogLevel = OpenQA.Selenium.LogLevel;
+using OpenQA.Selenium;
 namespace Seo.Crawler.Selenium
 {
     public class Crawler
@@ -21,7 +23,7 @@ namespace Seo.Crawler.Selenium
         private Stopwatch _watch;
         private Logger logger;
         private HashSet<Uri> pagesNotFound;
-
+        private DataTable pagesErrorList;
         public Crawler(CrawlerOptions options)
         {
             _options = options;
@@ -29,6 +31,8 @@ namespace Seo.Crawler.Selenium
             pagesNotFound = new HashSet<Uri>();
             pagesToVisit = new List<Uri>();
             _watch = new Stopwatch();
+            pagesErrorList = new DataTable();
+            pagesErrorList = ExcelHandler.InitTable(pagesErrorList);
             logger = LogManager.GetCurrentClassLogger();
             var chromeOptions = new ChromeOptions();
             chromeOptions.AddArgument("--user-agent=" + _options.UserAgent);
@@ -58,6 +62,7 @@ namespace Seo.Crawler.Selenium
             _driver.Navigate().GoToUrl(uri);
             SaveHtmlAndScreenShot(uri);
             Record404Pages(uri);
+            ValidatePage(uri);
             pagesToVisit.AddRange(GetUnvisitedLinks());
             if (pagesToVisit.Count >= 1 && pagesVisited.Count < _options.MaxPageToVisit)
             {
@@ -77,11 +82,37 @@ namespace Seo.Crawler.Selenium
             }
         }
 
+
+        private void ValidatePage(Uri currentUri)
+        {
+   
+            DataRow drRow = pagesErrorList.NewRow();
+            drRow["URL"] = currentUri.AbsolutePath;
+            List<LogEntry> logEntry =  _driver.Manage().Logs.GetLog(LogType.Browser).ToList();
+            Boolean ValidateFailed = false;
+
+            if (_driver.PageSource.Contains("Error 404") || _driver.PageSource.Contains("404") || _driver.PageSource.ToLower().Contains("not found"))
+            {
+                drRow["NotFound"] = " Page Not Found";
+                ValidateFailed = true;
+            }
+            if (logEntry.Count > 0)
+            {
+
+                drRow["LogCount"] = logEntry.Count.ToString();
+                drRow["Error"] += string.Join(" , ", logEntry.Where(log => !log.Message.Contains("$modal is now deprecated. Use $uibModal instead.")).Select(log => log.Message).ToList());
+                ValidateFailed = true;
+            }
+            if (ValidateFailed)
+                pagesErrorList.Rows.Add(drRow);
+        }
+
         private void Finish()
         {
             _driver.Quit();
             SaveSitemap();
             Save404Pages();
+            ExcelHandler.DataTableToExcel(_options.FolderPath + "\\PageNonValidateList.xlsx", pagesErrorList);
             _watch.Stop();
             logger.Info("Finish all task in {0}", _watch.Elapsed);
         }
