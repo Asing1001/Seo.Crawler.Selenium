@@ -38,8 +38,17 @@ namespace Seo.Crawler.Selenium
 
         public void Start()
         {
-            _watch.Start();
-            Crawl(_options.StartUrl);
+            try
+            {
+                _watch.Start();
+                Crawl(_options.StartUrl);
+            }
+            catch (Exception ex)
+            {
+                Finish();
+                logger.Fatal(ex);
+            }
+            
         }
 
         private void Crawl(Uri uri)
@@ -70,8 +79,7 @@ namespace Seo.Crawler.Selenium
 
         private void Finish()
         {
-            _driver.Dispose();
-            _driver.Close();
+            _driver.Quit();
             SaveSitemap();
             Save404Pages();
             _watch.Stop();

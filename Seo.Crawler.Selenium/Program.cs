@@ -9,15 +9,17 @@ namespace Seo.Crawler.Selenium
         private static Logger logger = LogManager.GetCurrentClassLogger();
         static void Main(string[] args)
         {
+            Crawler crawler;
             try
             {
                 var options = ConfigurationManager.GetSection("CrawlerOptions") as CrawlerOptions;
                 logger.Info("Config is {0}", options);
-                var crawler = new Crawler(options);
+                crawler = new Crawler(options);
                 crawler.Start();
             }
             catch(Exception ex)
             {
+                crawler.Finish();
                 logger.Fatal(ex);
             }
         }
