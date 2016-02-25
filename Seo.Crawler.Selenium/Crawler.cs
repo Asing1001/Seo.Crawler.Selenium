@@ -145,6 +145,7 @@ namespace Seo.Crawler.Selenium
 
         private IEnumerable<Uri> GetUnvisitedLinks()
         {
+            var result = new List<Uri>();
             var originHost = _options.StartUrl.Host;
             var links = _driver.FindElementsByCssSelector("a[href]")
                 .Select(a =>
@@ -159,11 +160,19 @@ namespace Seo.Crawler.Selenium
                     }
                 }
                 );
-            var sameDomainUnvisitedLinks = links.Where(link => link != null && link.Host.Contains(originHost) && !pagesVisited.Contains(link)
-                && !pagesToVisit.Contains(link)).ToList();
-            logger.Info("Get {0} sameDomainUnvisitedLinks, list as below :{1}", sameDomainUnvisitedLinks.Count,
-                JsonConvert.SerializeObject(sameDomainUnvisitedLinks.Select(uri => uri.AbsolutePath)));
-            return sameDomainUnvisitedLinks;
+
+            foreach (var link in links)
+            {
+                if (link != null && link.Host.Contains(originHost) && !pagesVisited.Contains(link)
+                    && !pagesToVisit.Contains(link)&& !result.Contains(link))
+                {
+                    result.Add(link);
+                }
+            }
+
+            logger.Info("Get {0} sameDomainUnvisitedLinks, list as below :{1}", result.Count,
+                JsonConvert.SerializeObject(result.Select(uri => uri.AbsolutePath)));
+            return result;
         }
 
         private void SaveHtmlAndScreenShot(Uri uri)
