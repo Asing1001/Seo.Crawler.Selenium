@@ -10,7 +10,6 @@ using NLog;
 using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Remote;
 using System.Data;
-using LogLevel = OpenQA.Selenium.LogLevel;
 using OpenQA.Selenium;
 namespace Seo.Crawler.Selenium
 {
@@ -49,39 +48,31 @@ namespace Seo.Crawler.Selenium
             }
             catch (Exception ex)
             {
-                Finish();
                 logger.Fatal(ex);
             }
-            
+            Finish();
         }
 
         private void Crawl(Uri uri)
         {
-            pagesVisited.Add(uri);
-            logger.Info("[{0}] Open page :{1}", pagesVisited.Count, uri);
-            _driver.Navigate().GoToUrl(uri);
-            SaveHtmlAndScreenShot(uri);
-            Record404Pages(uri);
-            ValidatePage(uri);
-            pagesToVisit.AddRange(GetUnvisitedLinks());
-            if (pagesToVisit.Count >= 1 && pagesVisited.Count < _options.MaxPageToVisit)
+            for (var i = 0; i <= _options.MaxPageToVisit; i++)
             {
-                Crawl(PopUrlFromPagesToVisit());
-            }
-            else
-            {
-                Finish();
-            }
-        }
-
-        private void Record404Pages(Uri currentUri)
-        {
-            if (_driver.PageSource.Contains("Error 404"))
-            {
-                pagesNotFound.Add(currentUri);
+                pagesVisited.Add(uri);
+                logger.Info("[{0}] Open page :{1}", pagesVisited.Count, uri);
+                _driver.Navigate().GoToUrl(uri);
+                SaveHtmlAndScreenShot(uri);
+                ValidatePage(uri);
+                pagesToVisit.AddRange(GetUnvisitedLinks());
+                if (pagesToVisit.Count > 0)
+                {
+                    uri = PopUrlFromPagesToVisit();
+                }
+                else
+                {
+                    break;
+                }
             }
         }
-
 
         private void ValidatePage(Uri currentUri)
         {
