@@ -23,6 +23,7 @@ namespace Seo.Crawler.Selenium
         private Logger logger;
         private HashSet<Uri> pagesNotFound;
         private DataTable pagesErrorList;
+        private Dictionary<string, string> pageParentURLMapping;  //Key is current Page, Content is parent Page
         public Crawler(CrawlerOptions options)
         {
             _options = options;
@@ -33,6 +34,7 @@ namespace Seo.Crawler.Selenium
             pagesErrorList = new DataTable();
             pagesErrorList = ExcelHandler.InitTable(pagesErrorList);
             logger = LogManager.GetCurrentClassLogger();
+            pageParentURLMapping = new Dictionary<string, string>();
             var chromeOptions = new ChromeOptions();
             chromeOptions.AddArgument("--user-agent=" + _options.UserAgent);
             _driver = new ChromeDriver(chromeOptions);
@@ -95,7 +97,12 @@ namespace Seo.Crawler.Selenium
                 ValidateFailed = true;
             }
             if (ValidateFailed)
+            {
+                drRow["SourceURL"] = pageParentURLMapping.ContainsKey(currentUri.AbsolutePath)? pageParentURLMapping[currentUri.AbsolutePath] : "";
                 pagesErrorList.Rows.Add(drRow);
+            }
+            if (pageParentURLMapping.Count >0)
+                pageParentURLMapping.Remove(currentUri.AbsoluteUri);
         }
 
         private void Finish()
@@ -158,6 +165,7 @@ namespace Seo.Crawler.Selenium
                     && !pagesToVisit.Contains(link)&& !result.Contains(link))
                 {
                     result.Add(link);
+                    pageParentURLMapping.Add(link.ToString(),_driver.Url);
                 }
             }
 

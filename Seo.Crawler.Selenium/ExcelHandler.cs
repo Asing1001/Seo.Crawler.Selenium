@@ -34,6 +34,7 @@ namespace Seo.Crawler.Selenium
         {
             if (dtDataTable != null)
             {
+                dtDataTable.Columns.Add("SourceURL", typeof(System.String));
                 dtDataTable.Columns.Add("URL", typeof(System.String));
                 dtDataTable.Columns.Add("NotFound", typeof(System.String));
                 dtDataTable.Columns.Add("Error", typeof(System.String));
