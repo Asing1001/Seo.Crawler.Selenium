@@ -144,7 +144,7 @@ namespace Seo.Crawler.Selenium
         private IEnumerable<Uri> GetUnvisitedLinks()
         {
             var result = new List<Uri>();
-            var originHost = _options.StartUrl.Host;
+            var originHost = _options.StartUrl.AbsoluteUri;
             var links = _driver.FindElementsByCssSelector("a[href]")
                 .Select(a =>
                 {
@@ -161,7 +161,7 @@ namespace Seo.Crawler.Selenium
 
             foreach (var link in links)
             {
-                if (link != null && link.Host.Contains(originHost) && !pagesVisited.Contains(link)
+                if (link != null && link.AbsoluteUri.Contains(originHost) && !pagesVisited.Contains(link)
                     && !pagesToVisit.Contains(link)&& !result.Contains(link))
                 {
                     result.Add(link);
